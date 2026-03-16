@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import javax.inject.Inject
 
 data class WeeklyStat(
@@ -20,30 +21,42 @@ class GetWeeklyStatsUseCase @Inject constructor(
         val endDate = LocalDate.now()
         val startDate = endDate.minusDays(6)
 
-        val formatter = DateTimeFormatter.ISO_LOCAL_DATE
+        val dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE
+        val dayNameFormatter = DateTimeFormatter.ofPattern("EEE", Locale.ENGLISH)
 
-        val startStr = startDate.format(formatter)
-        val endStr = endDate.format(formatter)
+        val startStr = startDate.format(dateFormatter)
+        val endStr = endDate.format(dateFormatter)
 
         return combine(
             habitRepository.getAllHabits(),
             habitRepository.getCompletionsInRange(startStr, endStr)
-        )
-        { habits, completions ->
+        ) { habits, completions ->
             val totalHabits = habits.size
-            if (totalHabits == 0) return@combine emptyList()
-            val stats = mutableListOf<WeeklyStat>()
+            val weeklyStats = mutableListOf<WeeklyStat>()
 
-            for (i in 0..6) {
-                val currentDate = startDate.plusDays(i.toLong())
-                val dateStr = currentDate.format(formatter)
-                val dayOfWeek = currentDate.dayOfWeek.name.take(3).lowercase().replaceFirstChar { it.uppercase() }
-                val completedCount = completions.count { it.completedDate == dateStr }
-                val rate = completedCount.toFloat() / totalHabits.toFloat()
+            for (dayIndex in 0..6) {
+                val currentDate = startDate.plusDays(dayIndex.toLong())
 
-                stats.add(WeeklyStat(dayOfWeek, dateStr, rate))
+                val dateStr = currentDate.format(dateFormatter)
+                val dayOfWeekStr = currentDate.format(dayNameFormatter)
+
+                val rate = if (totalHabits == 0) {
+                    0f
+                } else {
+                    val completedCount = completions.count { it.completedDate == dateStr }
+                    completedCount.toFloat() / totalHabits.toFloat()
+                }
+
+                weeklyStats.add(
+                    WeeklyStat(
+                        dayOfWeek = dayOfWeekStr,
+                        date = dateStr,
+                        completionRate = rate
+                    )
+                )
             }
-            stats
+
+            weeklyStats
         }
     }
 }
