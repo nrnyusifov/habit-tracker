@@ -28,10 +28,12 @@ fun WeeklyChart(
     weeklyStats: List<WeeklyStat>,
     modifier: Modifier = Modifier
 ) {
+    if (weeklyStats.isEmpty()) return
+
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(200.dp)
+            .height(220.dp)
             .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.Bottom
@@ -50,10 +52,12 @@ private fun ChartBar(
     stat: WeeklyStat,
     modifier: Modifier = Modifier
 ) {
+    val safeRate = stat.completionRate.coerceIn(0f, 1f)
+
     val animatedHeight by animateFloatAsState(
-        targetValue = stat.completionRate,
+        targetValue = safeRate,
         animationSpec = tween(durationMillis = 1000),
-        label = ""
+        label = "chart_bar_animation"
     )
 
     Column(
@@ -61,6 +65,12 @@ private fun ChartBar(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom
     ) {
+        Text(
+            text = "${(safeRate * 100).toInt()}%",
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+
         val barColor = MaterialTheme.colorScheme.primary
         val trackColor = MaterialTheme.colorScheme.surfaceVariant
 
@@ -80,6 +90,7 @@ private fun ChartBar(
             )
 
             val barHeight = height * animatedHeight
+
             drawRoundRect(
                 color = barColor,
                 topLeft = Offset(0f, height - barHeight),

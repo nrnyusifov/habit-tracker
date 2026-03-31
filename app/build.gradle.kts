@@ -78,4 +78,7 @@ dependencies {
 
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
+    implementation("com.patrykandpatrick.vico:compose-m3:2.4.3")
+    implementation("com.patrykandpatrick.vico:core:2.4.3")
+
 }
