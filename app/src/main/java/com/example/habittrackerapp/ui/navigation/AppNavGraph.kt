@@ -1,51 +1,34 @@
 package com.example.habittrackerapp.ui.navigation
 
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.habittrackerapp.ui.dashboard.DashboardRoute
-import com.example.habittrackerapp.ui.habitdetail.HabitDetailRoute
-import com.example.habittrackerapp.ui.habitlist.HabitListRoute
+import androidx.compose.material3.Text
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
-    val snackBarHostState = remember { SnackbarHostState() }
-
     NavHost(
         navController = navController,
         startDestination = Screen.Dashboard.route
     ) {
         composable(Screen.Dashboard.route) {
-            DashboardRoute()
+            Text("Dashboard Screen")
         }
-
         composable(Screen.HabitList.route) {
-            HabitListRoute(
-                snackBarHostState = snackBarHostState,
-                onNavigateToDetail = { habitId ->
-                    navController.navigate(Screen.HabitDetail.createRoute(habitId))
-                }
-            )
+            Text("Habit List Screen")
         }
-
         composable(Screen.Settings.route) {
-            androidx.compose.material3.Text("Settings Screen")
+            Text("Settings Screen")
         }
-
         composable(
             route = Screen.HabitDetail.route,
-            arguments = listOf(
-                navArgument("habitId") { type = NavType.IntType }
-            )
-        ) {
-            HabitDetailRoute(
-                onBackClick = { navController.popBackStack() }
-            )
+            arguments = listOf(navArgument("habitId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val habitId = backStackEntry.arguments?.getInt("habitId") ?: 0
+            Text("Habit Detail for ID: $habitId")
         }
     }
 }
